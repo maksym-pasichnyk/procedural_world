@@ -20,12 +20,3 @@ limitations under the License.
 #include "gameobject.h"
 
 extern std::unique_ptr<GameObject> createPlanet(const glm::vec3& position, int level_of_detail, float radius, float height_variation);
-
-struct Planet : public GameObject {
-private:
-	GLuint shader = Shader::find("default");
-public:
-	GLuint getShader() override {
-		return shader;
-	}
-};

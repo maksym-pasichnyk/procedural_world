@@ -20,17 +20,3 @@ limitations under the License.
 #include "gameobject.h"
 
 extern std::unique_ptr<GameObject> createTree(const glm::vec3& position);
-
-struct Tree : public GameObject {
-private:
-	GLuint shader = Shader::find("default");
-
-public:
-	GLuint getShader() override {
-		return shader;
-	}
-
-	void update(double dt) override {
-		transform.rotation.y += dt;
-	}
-};

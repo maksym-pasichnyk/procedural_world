@@ -109,8 +109,9 @@ std::unique_ptr<GameObject> createLObject(const std::string& axiom, const std::m
 		}
 	}
 
-	auto object = std::make_unique<LSystemObject>();
+	auto object = std::make_unique<GameObject>();
 	object->mesh = builder.build();
+	object->mesh.shader = Shader::find("default");
 	object->mesh.mode = GL_LINES;
 	return std::move(object);
 }

@@ -27,6 +27,7 @@ limitations under the License.
 #include <vector>
 
 struct Mesh {
+	GLuint shader;
 	GLuint VAO{};
 	GLuint VBO{};
 	GLuint CBO{};

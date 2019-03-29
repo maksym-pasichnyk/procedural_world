@@ -21,17 +21,3 @@ limitations under the License.
 #include "gameobject.h"
 
 std::unique_ptr<GameObject> createLObject(const std::string& axiom, const std::map<char, std::string>& rules, size_t iterations, float angle);
-
-struct LSystemObject : public GameObject {
-private:
-	GLuint shader = Shader::find("default");
-
-public:
-	GLuint getShader() override {
-		return shader;
-	}
-
-	void update(double dt) override {
-//		transform.rotation.y += dt;
-	}
-};

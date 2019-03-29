@@ -113,8 +113,9 @@ std::unique_ptr<GameObject> createPlanet(const glm::vec3& position, int level_of
 	mesh.setIndices(indices);
 	mesh.setVertices(vertices);
 
-	auto object = std::make_unique<Planet>();
+	auto object = std::make_unique<GameObject>();
 	object->mesh = std::move(mesh);
+	object->mesh.shader = Shader::find("default");
 	object->transform.position = position;
 	return std::move(object);
 };

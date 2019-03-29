@@ -40,7 +40,14 @@ void Camera::update(double dt) {
 	auto right = glm::normalize(glm::vec3{matrix[0]});
 	auto forward = glm::normalize(glm::vec3{matrix[2]});
 
-	float speed = 50.0f;
+	static float speed = 50.0f;
+
+	if (window->getKeyState(GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		speed += 10.0f;
+	} else {
+		speed = 50.0f;
+	}
+
 	if (window->getKeyState(GLFW_KEY_W) == GLFW_PRESS) {
 		transform.position -= forward * (float)(dt * speed);
 	}

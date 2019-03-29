@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
  */
 
+
 #include "tree.h"
 
 #include "mesh_builder.h"
@@ -25,7 +26,10 @@ limitations under the License.
 
 #include <functional>
 
-#include <glm/detail/func_trigonometric.inl>
+//#include <glm/detail/func_trigonometric.inl>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/euler_angles.hpp>
 
 struct leaf_t {
 	glm::vec3 pos;
@@ -34,22 +38,22 @@ struct leaf_t {
 };
 
 struct branch_t {
-	branch_t* parent;
+	std::optional<glm::vec3> start;
 	glm::vec3 pos;
 	glm::vec3 dir = {0, 0, 0};
 	size_t count = 0;
 
-	explicit branch_t(const glm::vec3& pos, branch_t* parent = nullptr) : pos{pos}, parent{parent} {}
-
-	branch_t* next(const glm::vec3& dir) {
-		return new branch_t{pos + dir, this};
-	}
+	explicit branch_t(const glm::vec3& pos, const std::optional<glm::vec3>& start = std::nullopt) : pos{pos}, start{start} {}
 
 	void reset() {
 		dir = {0, 0, 0};
 		count = 0;
 	}
 };
+
+branch_t grow_branch(const branch_t &branch, const glm::vec3 &dir) {
+	return branch_t{branch.pos + dir, branch.pos};
+}
 
 //todo: generate solid mesh
 std::unique_ptr<GameObject> createTree(const glm::vec3& position) {
@@ -62,78 +66,105 @@ std::unique_ptr<GameObject> createTree(const glm::vec3& position) {
 	MeshBuilder builder{};
 
 	auto create_branch_mesh = [&](const glm::vec3& start, const glm::vec3& end, float radius, float segment_height, int segments) {
+		auto index = builder.vertices.size();
+//
+//		builder.vertices.push_back(start);
+//		builder.vertices.push_back(end);
+//
+//		builder.indices.push_back(index);
+//		builder.indices.push_back(index + 1);
+
 		float distance = glm::distance(end, start);
 		segment_height = distance / 10.0f;
-
+//
 		int segments_per_height = static_cast<int>(distance / segment_height);
 
-		glm::vec3 normal =  glm::normalize(end - start);
+		auto dir = end - start;
+		auto part = dir / static_cast<float>(segments_per_height);
 
-		float sin_alpha = -normal.z;
-		float cos_alpha = normal.y;
+		auto n = glm::normalize(dir);
 
-		auto index = builder.vertices.size();
 
 		float segment = 360.0f / segments;
-		for (int y = 0; y <= segments_per_height; y++) {
+		auto s = start;
+		for (int j = 0; j < segments_per_height; j++) {
 			for (int i = 0; i < segments; i++) {
 				float angle = glm::radians(segment * i);
 
-				float x0 = radius * std::cos(angle);
-				float y0 = static_cast<float>(y) * segment_height;
-				float z0 = radius * std::sin(angle);
+				glm::vec3 point{radius * glm::cos(angle), static_cast<float>(j) * segment_height, radius * glm::sin(angle)};
 
-				float x = x0 + start.x;
-				float y = y0 * cos_alpha + z0 * sin_alpha + start.y;
-				float z = z0 * cos_alpha - y0 * sin_alpha + start.z;
+//				point = glm::cross(n, point);
 
+
+
+//
+//				point = rotate * glm::vec4(point, 1.0f);
+
+
+
+
+				glm::mat4x4 translate = glm::translate(glm::mat4x4(1.0f), point);
+				glm::mat4x4 rotate = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), n, glm::vec3(0.0f, 1.0f, 0.0f));
+				point = translate * rotate * glm::vec4(point, 1.0f);
+
+				float x = s.x + point.x;
+				float y = s.y + point.y;
+				float z = s.z + point.z;
+
+//				float y = y0 * cos_alpha + z0 * sin_alpha + start.y;
+//				float z = z0 * cos_alpha - y0 * sin_alpha + start.z;
+
+				builder.indices.push_back(builder.vertices.size());
 				builder.vertices.emplace_back(x, y, z);
 			}
+			s += part;
 		}
 
-		for (int j = 0; j < segments_per_height; j++) {
-			for (int i = 0; i < segments; i++) {
-				auto corner0 = index + i + j * segments;
-				auto corner1 = corner0 + segments;
-				auto corner2 = index + (1 + i) % segments + j * segments;
-				auto corner3 = corner2 + segments;
+//		for (int j = 0; j < segments_per_height; j++) {
+//			for (int i = 0; i < segments; i++) {
+//				auto corner0 = index + i + j * segments;
+//				auto corner1 = corner0 + segments;
+//				auto corner2 = index + (1 + i) % segments + j * segments;
+//				auto corner3 = corner2 + segments;
+//
+//				builder.indices.push_back(corner0);
+//				builder.indices.push_back(corner1);
+//				builder.indices.push_back(corner2);
+//
+//				builder.indices.push_back(corner2);
+//				builder.indices.push_back(corner1);
+//				builder.indices.push_back(corner3);
+//			}
 
-				builder.indices.push_back(corner0);
-				builder.indices.push_back(corner1);
-				builder.indices.push_back(corner2);
-
-				builder.indices.push_back(corner2);
-				builder.indices.push_back(corner1);
-				builder.indices.push_back(corner3);
-			}
-		}
+//				builder.indices.push_back(index + j);
+//		}
 	};
 
-	auto createBranch = [&](branch_t* branch) -> void {
-		if (branch->parent) {
-			create_branch_mesh(branch->parent->pos, branch->pos, 0.5f, 0.1f, 10);
+	auto createBranch = [&](const branch_t& branch) -> void {
+		if (branch.start) {
+			create_branch_mesh(branch.start.value(), branch.pos, 0.5f, 0.1f, 10);
 		}
 	};
 
 	std::vector<leaf_t> leaves{};
-	std::vector<branch_t*> branches{};
+	std::vector<branch_t> branches{};
 
 	for (int i = 0; i < 500; i++) {
-		double x = random_value(100) - 50;
-		double y = random_value(100) - 50;
-		double z = random_value(100) - 50;
+		double x = random_value(50) - 25;
+		double y = random_value(50) - 25;
+		double z = random_value(50) - 25;
 
 		leaves.emplace_back(glm::vec3{x, y, z});
 	}
 
-	auto root = new branch_t{glm::vec3{0, -100, 0}};
+	branch_t root {glm::vec3{0, -50, 0}};
 
 	branches.push_back(root);
 
 	constexpr double min_dist = 10.0;
-	constexpr double max_dist = 50.0;
+	constexpr double max_dist = 25.0;
 
-	auto current = root;
+	auto current = &root;
 
 	bool found = false;
 	while (!found) {
@@ -147,8 +178,8 @@ std::unique_ptr<GameObject> createTree(const glm::vec3& position) {
 		}
 
 		if (!found) {
-			current = current->next(glm::vec3{0.0f, 5.0f, 0.0f});
-			branches.push_back(current);
+			branches.push_back(grow_branch(*current, glm::vec3{0.0f, 5.0f, 0.0f}));
+			current = &branches.back();
 		}
 	}
 
@@ -156,11 +187,11 @@ std::unique_ptr<GameObject> createTree(const glm::vec3& position) {
 		if (leaves.empty()) break;
 
 		for (auto &leaf : leaves) {
-			branch_t *closest = nullptr;
+			branch_t* closest = nullptr;
 			double m_dist = 0;
 
-			for (auto branch : branches) {
-				auto dist = glm::distance(leaf.pos, branch->pos);
+			for (auto& branch : branches) {
+				auto dist = glm::distance(leaf.pos, branch.pos);
 
 				if (dist > max_dist) {
 					continue;
@@ -172,7 +203,7 @@ std::unique_ptr<GameObject> createTree(const glm::vec3& position) {
 				}
 
 				if (!closest || (m_dist > dist)) {
-					closest = branch;
+					closest = &branch;
 					m_dist = dist;
 				}
 			}
@@ -186,24 +217,27 @@ std::unique_ptr<GameObject> createTree(const glm::vec3& position) {
 
 		leaves.erase(std::remove_if(leaves.begin(), leaves.end(), [](const leaf_t &leaf) { return leaf.reached; }), leaves.end());
 
-		for (auto branch : branches) {
-			if (branch->count > 0) {
-				auto dir = glm::normalize(branch->dir / static_cast<float>(branch->count));
+		for (auto& branch : branches) {
+			if (branch.count > 0) {
+				auto dir = glm::normalize(branch.dir / static_cast<float>(branch.count));
 
-				branches.push_back(branch->next(dir));
+				branches.push_back(grow_branch(branch, dir));
 			}
 
-			branch->reset();
+			branch.reset();
 		}
 	}
 
-	for (auto branch : branches) {
+	std::cout << branches.size() << std::endl;
+
+	for (auto const& branch : branches) {
 		createBranch(branch);
 	}
 
-	auto object = std::make_unique<Tree>();
+	auto object = std::make_unique<GameObject>();
 	object->mesh = builder.build();
-	object->mesh.mode = GL_POINTS;
+	object->mesh.shader = Shader::find("default");
+	object->mesh.mode = GL_LINES;
 	object->transform.position = position;
 	return std::move(object);
 }
