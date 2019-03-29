@@ -1,2 +1,2 @@
-# procedural_world
-Procedural world
+# procedural world
+part of bachelor degree
