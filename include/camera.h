@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 #pragma once
 #include "transform.h"
@@ -26,6 +26,7 @@ struct Camera {
 	float fov = 45.0f;
 
 	glm::mat4x4 matrix();
+	glm::mat4x4 local_matrix();
 	glm::mat4x4 projection();
 
 	void update(double dt);

@@ -12,14 +12,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 #include "window.h"
 #include <cstdlib>
 #include <iostream>
 #include <window.h>
 
-Window::Window(int width, int height, const char *title) {
+Window::Window(int width, int height, const char *title) : h_width{width * 0.5}, h_height{height * 0.5} {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -60,19 +60,12 @@ void Window::focusChange(GLFWwindow* window, int focus) {
 	auto self = Module::getInstance<Window>(Module::WINDOW);
 
 	if (focus) {
+		self->init_mouse = true;
+		self->dx = 0;
+		self->dy = 0;
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		glfwSetCursorPos(window, 0, 0);
 	} else {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 	self->focus = static_cast<bool>(focus);
-}
-
-std::pair<double, double> Window::getMouseDelta() {
-	double dx = 0, dy = 0;
-	if (focus) {
-		glfwGetCursorPos(window, &dx, &dy);
-		glfwSetCursorPos(window, 0, 0);
-	}
-	return std::make_pair(dx, dy);
 }

@@ -135,3 +135,24 @@ float noise(vec3 point, int octaves, float persistence) {
 
     return result / max;
 }
+
+out vec3 color;
+
+in vec3 frag_position;
+in vec3 vert_position;
+in vec3 frag_normal;
+in vec3 frag_color;
+
+vec3 lightPos = vec3(0, 0, 0);
+vec3 lightColor = vec3(1, 1, 1);
+
+void main() {
+    float ambientStrength = 0.5f;
+    vec3 ambient = ambientStrength * lightColor;
+
+    vec3 lightDir = normalize(lightPos - frag_position);
+    float diff = max(dot(frag_normal, lightDir), 0.0);
+    vec3 diffuse = diff * lightColor;
+
+	color = (ambient + diffuse) * noise(vert_position, 8, 0.5f) * frag_color;
+}

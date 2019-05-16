@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 #include "shader.h"
 
@@ -90,11 +90,16 @@ GLuint Shader::create(const std::string &vertex_source, const std::string &fragm
 	return program;
 }
 
-GLuint Shader::load(const std::string &vertex_file_path, const std::string &fragment_file_path) {
+GLuint Shader::load(const std::string &vertex_file_path, const std::string &fragment_file_path, const std::optional<std::string>& geometry_file_path) {
+	if (geometry_file_path) {
+		return create(source(vertex_file_path), source(fragment_file_path), source(geometry_file_path.value()));
+	}
+
 	return create(source(vertex_file_path), source(fragment_file_path));
 }
 
-GLuint Shader::load(const std::string &vertex_file_path, const std::string &fragment_file_path, const std::string &geometry_file_path) {
-	return create(source(vertex_file_path), source(fragment_file_path), source(geometry_file_path));
+void
+Shader::preload(const std::string &name, const std::string &vertex_file_path, const std::string &fragment_file_path, const std::optional<std::string> &geometry_file_path) {
+	shaders[name] = load(vertex_file_path, fragment_file_path, geometry_file_path);
 }
 

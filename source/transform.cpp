@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 #include "transform.h"
 
@@ -20,8 +20,9 @@ limitations under the License.
 #include <glm/gtx/euler_angles.hpp>
 
 glm::mat4x4 Transform::matrix() {
-	auto translate = glm::translate(glm::mat4{1.0f}, -position);
-	auto rotate = glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+	return glm::translate(glm::mat4{1.0f}, position) * glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
+}
 
-	return rotate * translate;
+glm::mat4x4 Transform::rotation_matrix() {
+	return glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z);
 }

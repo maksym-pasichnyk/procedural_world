@@ -12,15 +12,16 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
- #version 330 core
+#version 330 core
 
 layout(location = 0) in vec3 vertex_position;
 layout(location = 1) in vec3 vertex_color;
 layout(location = 2) in vec3 vertex_normal;
 
 out vec3 frag_position;
+out vec3 vert_position;
 out vec3 frag_normal;
 out vec3 frag_color;
 
@@ -32,6 +33,7 @@ void main() {
 
     gl_Position = world_transform * position;
 
+    vert_position = vertex_position;
     frag_position = position.xyz;
     frag_normal = normalize(frag_position);
     frag_color = vertex_color;

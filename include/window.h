@@ -12,7 +12,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 #pragma once
 
@@ -33,6 +33,17 @@ public:
 
 	void pollEvents() {
 		glfwPollEvents();
+
+		if (focus) {
+			if (!init_mouse) {
+				double mouse_x, mouse_y;
+				glfwGetCursorPos(window, &mouse_x, &mouse_y);
+				dx = mouse_x - h_width;
+				dy = mouse_y - h_height;
+			}
+			init_mouse = false;
+			glfwSetCursorPos(window, h_width, h_height);
+		}
 	}
 
 	void swap() {
@@ -43,7 +54,9 @@ public:
 		glfwSetWindowShouldClose(window, 1);
 	}
 
-	std::pair<double, double> getMouseDelta();
+	std::pair<double, double> getMouseDelta() {
+		return std::make_pair(dx, dy);
+	}
 
 	int getKeyState(int key) {
 		return glfwGetKey(window, key);
@@ -59,6 +72,11 @@ public:
 private:
 	GLFWwindow* window = nullptr;
 	bool focus = false;
+	bool init_mouse = false;
+	double dx = 0;
+	double dy = 0;
+	double h_width = 0;
+	double h_height = 0;
 
 	static void processInput(GLFWwindow* window, int key, int code, int action, int mods);
 	static void focusChange(GLFWwindow* window, int focus);

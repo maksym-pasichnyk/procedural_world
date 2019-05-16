@@ -12,17 +12,18 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
- */
+*/
 
 #pragma once
 
 #include <chrono>
-
-using Clock = std::chrono::high_resolution_clock;
-using TimePoint = Clock::time_point;
+#include <vector>
 
 struct Timer {
-	TimePoint last = Clock::now();
+	using Clock = std::chrono::high_resolution_clock;
+	using Point = Clock::time_point;
+
+	Point last = Clock::now();
 
 	void reset() {
 		last = Clock::now();
